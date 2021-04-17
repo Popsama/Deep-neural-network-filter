@@ -9,53 +9,6 @@ def baseline_regularization(original_signal, baseline_signal):
     return regularization
 
 
-CH4_simulated_no_noise_npy = r"D:\PYHTON\python3.7\DeepLearningProgram\深度学习滤波器\1000组模拟数据\提供给模型的数据\模拟数据\CH4_sim_no_noise.npy"
-CH4_no_noise = np.load(CH4_simulated_no_noise_npy)  # (1000, 1111) row for data column for number of data
-baseline = CH4_no_noise[0]
-CH4_no_noise = baseline_regularization(CH4_no_noise, baseline)
-
-CH4_simulated_noisy_npy = r"D:\PYHTON\python3.7\DeepLearningProgram\深度学习滤波器\1000组模拟数据\提供给模型的数据\模拟数据\CH4_sim_withnoise.npy"
-CH4_noisy = np.load(CH4_simulated_noisy_npy)  # (1000, 1111) row for data column for number of data, with noise
-CH4_noisy = baseline_regularization(CH4_noisy, baseline)
-
-"""我们假定使用第500个数据，也即500ppm的CH4的吸收谱作为sample"""
-plt.figure()
-plt.subplot(1, 2, 1)
-plt.plot(CH4_no_noise[500])
-plt.ylim(0.95, 1.05)
-
-plt.subplot(1, 2, 2)
-plt.plot(CH4_noisy[500])
-plt.ylim(0.95, 1.05)
-
-process_var = 0.009858427**2  # process noise variance
-sensor_var = 0.009223176**2  # measurement noise variance
-
-Z = CH4_noisy[500]
-nk = np.arange(0, 1111)
-Z = np.vstack((Z, nk))  # (2, 1111) measurement matrix
-
-U = CH4_no_noise[500]
-ones = np.ones((1111,))
-U = np.vstack((U, ones))  # (2, 1111) control matrix
-
-
-A = np.array([[0, 0],
-              [0, 1]])
-
-B = np.array([[1, 0],
-              [0, 1]])
-
-H = np.array([[1, 0],
-              [0, 1]])
-
-process_noise_variance_matrix = np.array([[process_var, 0],
-                                          [0, 0]])
-
-measure_noise_variance_matrix = np.array([[sensor_var],
-                                          [0]])
-
-
 class SpectralKalmanFilter:
     """
     plain Kalman Filter类，初始化方法中包含了气体吸收光谱系统空间状态方程所需要的
@@ -94,7 +47,7 @@ class SpectralKalmanFilter:
 
     def predict(self, X_pre, P_pre, U):
         X_priori = self.A @ X_pre.reshape(2, 1) + self.B @ U.reshape(2, 1)
-        P_priori = self.A @ P_pre @ A.transpose() + self.Q
+        P_priori = self.A @ P_pre @ self.A.transpose() + self.Q
         return X_priori, P_priori
 
     def modify(self, X_priori, P_priori, Z_next):
@@ -115,12 +68,57 @@ class SpectralKalmanFilter:
         return self.X_prediction
 
 
-Filter = SpectralKalmanFilter(U, Z, process_var, sensor_var)
-x_prediction = Filter.filtering()
-print(x_prediction.shape)
-plt.figure()
-plt.plot(Z[0], label="measure")
-plt.plot(x_prediction[0], label="kalman filter")
-plt.plot(CH4_no_noise[500], label="actual")
-plt.legend()
-plt.show()
+if __name__ == "__main__":
+    CH4_simulated_no_noise_npy = r"D:\PYHTON\python3.7\DeepLearningProgram\深度学习滤波器\1000组模拟数据\提供给模型的数据\模拟数据\CH4_sim_no_noise.npy"
+    CH4_no_noise = np.load(CH4_simulated_no_noise_npy)  # (1000, 1111) row for data column for number of data
+    baseline = CH4_no_noise[0]
+    CH4_no_noise = baseline_regularization(CH4_no_noise, baseline)
+
+    CH4_simulated_noisy_npy = r"D:\PYHTON\python3.7\DeepLearningProgram\深度学习滤波器\1000组模拟数据\提供给模型的数据\模拟数据\CH4_sim_withnoise.npy"
+    CH4_noisy = np.load(CH4_simulated_noisy_npy)  # (1000, 1111) row for data column for number of data, with noise
+    CH4_noisy = baseline_regularization(CH4_noisy, baseline)
+
+    """我们假定使用第500个数据，也即500ppm的CH4的吸收谱作为sample"""
+    plt.figure()
+    plt.subplot(1, 2, 1)
+    plt.plot(CH4_no_noise[500])
+    plt.ylim(0.95, 1.05)
+
+    plt.subplot(1, 2, 2)
+    plt.plot(CH4_noisy[500])
+    plt.ylim(0.95, 1.05)
+
+    process_var = 0.009858427 ** 2  # process noise variance
+    sensor_var = 0.009223176 ** 2  # measurement noise variance
+
+    Z = CH4_noisy[500]
+    nk = np.arange(0, 1111)
+    Z = np.vstack((Z, nk))  # (2, 1111) measurement matrix
+
+    U = CH4_no_noise[500]
+    ones = np.ones((1111,))
+    U = np.vstack((U, ones))  # (2, 1111) control matrix
+
+    A = np.array([[0, 0],
+                  [0, 1]])
+
+    B = np.array([[1, 0],
+                  [0, 1]])
+
+    H = np.array([[1, 0],
+                  [0, 1]])
+
+    process_noise_variance_matrix = np.array([[process_var, 0],
+                                              [0, 0]])
+
+    measure_noise_variance_matrix = np.array([[sensor_var],
+                                              [0]])
+    Filter = SpectralKalmanFilter(U, Z, process_var, sensor_var)
+    x_prediction = Filter.filtering()
+    print(x_prediction.shape)
+    plt.figure()
+    plt.plot(Z[0], label="measure")
+    plt.plot(x_prediction[0], label="kalman filter")
+    plt.plot(CH4_no_noise[500], label="actual")
+    plt.legend()
+    plt.show()

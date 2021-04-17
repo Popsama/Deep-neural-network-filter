@@ -7,7 +7,6 @@ import torch
 import torch.utils.data as Data
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
-from Spectral_KF import SpectralKalmanFilter
 from torch.utils.data import random_split
 from FilterNet_utils import Data_set
 from bp_kalman_filter import BpFilter, array_to_tensor
