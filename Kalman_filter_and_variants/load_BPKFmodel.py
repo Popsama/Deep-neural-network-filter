@@ -11,6 +11,12 @@ from torch.utils.data import random_split
 from FilterNet_utils import Data_set
 from bp_kalman_filter import BpFilter, array_to_tensor
 
+
+def compute_snr(pure_signal, noisy_signal):
+    signal_to_noise_ratio = 10 * (np.log10(np.std(pure_signal)/np.std(noisy_signal-pure_signal)))
+    return signal_to_noise_ratio
+
+
 """模拟数据 （透射谱）"""
 no_noise_path = r"D:\PYHTON\python3.7\DeepLearningProgram\深度学习滤波器\1000组模拟数据\提供给模型的数据\模拟数据\CH_nonoise_spectral.npy"
 CH4_no_noise_spectral = np.load(no_noise_path)  # (1000, 1111) 透射谱（吸收谱）
@@ -33,6 +39,9 @@ test = array_to_tensor(test)
 test = test.reshape(1111, 1)
 prediction = Bp_kalman(test)
 prediction = prediction.cpu().detach().numpy()
+
+SNR = compute_snr(CH4_noisy_spectral[index], prediction)
+print(SNR)
 test = test.cpu().detach().numpy()
 plt.figure()
 plt.plot(CH4_noisy_spectral[index], label="without any filtering")

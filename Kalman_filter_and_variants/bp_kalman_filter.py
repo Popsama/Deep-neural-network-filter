@@ -102,7 +102,7 @@ def Fit(model, train_loader,  device, optimizer, criterion, epochs):
     return iteration_loss_list, validation_error_list
 
 
-def plain_kalman(index):
+def plain_kalman(index, CH4_noisy_spectral, CH4_no_noise_spectral):
     process_var = 0.009858427**2  # process noise variance
     sensor_var = 0.009223176**2  # measurement noise variance
     Z = CH4_noisy_spectral[index]
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     """plain KF滤波1次"""
     CH4_KF = np.zeros_like(CH4_no_noise_spectral)  # (1000, 1111)
     for i in range(1000):
-        CH4_KF[i] = plain_kalman(index=i)
+        CH4_KF[i] = plain_kalman(i, CH4_noisy_spectral, CH4_no_noise_spectral)
         print(i)
     print("CH4_KF shape: ", CH4_KF.shape)
 
