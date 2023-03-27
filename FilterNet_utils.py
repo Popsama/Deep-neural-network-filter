@@ -142,7 +142,7 @@ class Filter3(nn.Module):
         self.maxpool2 = nn.MaxPool1d(kernel_size=5, stride=2)
         self.conv3 = ConvBNReLU(in_channels=50, out_channels=100, kernel_size=8, stride=2)
         self.maxpool3 = nn.MaxPool1d(kernel_size=3, stride=2)
-        self.fc1 = nn.Linear(in_features=117*50, out_features=2000)
+        self.fc1 = nn.Linear(in_features=2700, out_features=2000)
         # self.fc2 = nn.Linear(in_features=4000, out_features=2000)
 
     def forward(self, x):
@@ -150,10 +150,12 @@ class Filter3(nn.Module):
         x = self.maxpool1(x)
         x = self.conv2(x)
         x = self.maxpool2(x)
+        x = self.conv3(x)
+        x = self.maxpool3(x)
         x = x.view(-1, self.flatten_features(x))
         x = self.fc1(x)
         x = F.relu(x)
-        x = x.unsqueeze(-1)
+        # x = x.unsqueeze(-1)
         return x
 
     @staticmethod
@@ -163,6 +165,34 @@ class Filter3(nn.Module):
         for s in size:
             num_features *= s
         return num_features
+
+
+class Filter6(nn.Module):
+
+    def __init__(self):
+        super(Filter, self).__init__()
+        self.conv1 = ConvBNReLU(in_channels=1, out_channels=10, kernel_size=3, stride=2)
+        self.conv2 = ConvBNReLU(in_channels=10, out_channels=100, kernel_size=3, stride=2)
+        self.conv3 = ConvBNReLU(in_channels=100, out_channels=500, kernel_size=3, stride=2)
+        self.conv4 = ConvBNReLU(in_channels=500, out_channels=1111, kernel_size=3, stride=2)
+        #         self.fc1 = nn.Linear(in_features=1111, out_features=1111)
+        #         self.conv5 = ConvBNReLU(in_channels=1000, out_channels=2000, kernel_size=3, stride=2)
+        self.globavgpool1 = nn.AdaptiveAvgPool1d(output_size=1)
+
+    def forward(self, x):
+        x = pooling1d(self.conv1(x))
+        x = pooling1d(self.conv2(x))
+        x = pooling1d(self.conv3(x))
+        x = self.conv4(x)
+        #         x=x.view(-1,1111)
+        #         x=self.fc1(x)
+        out = self.globavgpool1(x)
+        #         x = self.conv5(x)
+
+        #         print(out.shape)
+        return out
+
+
 
 
 class Filter4(nn.Module):  # 否决了。全连接就算只有四层参数也太多了
